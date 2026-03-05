@@ -8,7 +8,9 @@ app = Flask(__name__)
 CORS(app, origins="*")
 
 ERP_BASE = "https://newerp.kluniversity.in"
-ATTENDANCE_URL = f"{ERP_BASE}/index.php?r=student/student-attendanceregister"
+
+# Exact URL visible in the screenshot after clicking Search
+ATTEND_URL = f"{ERP_BASE}/index.php?r=studentattendance/studentdailyattendance/searchgetinput"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
@@ -18,88 +20,93 @@ HEADERS = {
 }
 
 
-def parse_attendance(html):
+def parse_kl_table(html):
+    """
+    Parse the KL ERP attendance table.
+    Exact columns from ERP: # | Coursecode | Coursedesc | Ltps | Section | Year | Semester | Fr Date | Total Conducted | Total Attended
+    Same subject appears multiple times (L/S/P) — we merge them.
+    """
     soup = BeautifulSoup(html, "html.parser")
     courses = []
     student_name = ""
 
-    # Try common selectors for student name
-    for sel in [".user-name", "#profile-name", ".username", "[class*='student-name']", "span.name", ".navbar-text"]:
+    # Get student name
+    for sel in [".username", ".user-name", "#profile-name", ".navbar-text b",
+                ".navbar-text strong", "[class*='username']"]:
         el = soup.select_one(sel)
         if el:
             t = el.get_text(strip=True)
-            if t and len(t) > 2:
-                student_name = t
-                break
-
-    # Also try finding name in any element with text that looks like a name
-    if not student_name:
-        for tag in soup.find_all(["span", "div", "td", "p"]):
-            t = tag.get_text(strip=True)
-            if re.match(r'^[A-Z][a-z]+ [A-Z]', t) and len(t) < 60:
+            if 2 < len(t) < 80:
                 student_name = t
                 break
 
     for table in soup.find_all("table"):
-        rows = table.find_all("tr")
-        if len(rows) < 2:
+        header_row = table.find("tr")
+        if not header_row:
             continue
 
-        headers = [th.get_text(strip=True).lower() for th in rows[0].find_all(["th", "td"])]
-        joined  = " ".join(headers)
+        ths = header_row.find_all(["th", "td"])
+        # Normalize: lowercase, strip spaces
+        headers = [h.get_text(strip=True).lower().replace(" ", "") for h in ths]
 
-        has_subject = any(k in joined for k in ["course", "subject", "name", "code"])
-        has_numbers = any(k in joined for k in ["conduct", "attend", "held", "present", "percent"])
-        if not has_subject and not has_numbers:
+        # Must have these two exact columns from KL ERP
+        if "coursecode" not in headers or "coursedesc" not in headers:
             continue
 
-        col = {"code": -1, "name": -1, "conducted": -1, "attended": -1}
-        for i, h in enumerate(headers):
-            if "code" in h and col["code"] == -1:                                             col["code"] = i
-            if any(k in h for k in ["course name","subject name","name","description","title"]) and col["name"] == -1: col["name"] = i
-            if any(k in h for k in ["conduct","held","total class"]):                          col["conducted"] = i
-            if any(k in h for k in ["attend","present"]) and col["attended"] == -1:           col["attended"] = i
+        def col(key):
+            for i, h in enumerate(headers):
+                if key in h:
+                    return i
+            return -1
 
-        for row in rows[1:]:
-            cells = [td.get_text(strip=True) for td in row.find_all(["td","th"])]
-            if len(cells) < 3:
+        i_code      = col("coursecode")
+        i_name      = col("coursedesc")
+        i_conducted = col("totalconducted") if col("totalconducted") != -1 else col("conducted")
+        i_attended  = col("totalattended")  if col("totalattended")  != -1 else col("attended")
+
+        # Fallback: if still -1, look for last two numeric-looking column headers
+        if i_conducted == -1 or i_attended == -1:
+            num_cols = [i for i, h in enumerate(headers) if any(k in h for k in ["total", "conduct", "attend", "present"])]
+            if len(num_cols) >= 2:
+                i_conducted = num_cols[-2]
+                i_attended  = num_cols[-1]
+
+        for row in table.find_all("tr")[1:]:
+            cells = [td.get_text(strip=True) for td in row.find_all("td")]
+            if len(cells) < 5:
                 continue
 
-            def sint(idx):
-                if idx == -1 or idx >= len(cells): return None
-                v = re.sub(r"[^\d]", "", cells[idx])
+            def g(i):
+                return cells[i].strip() if 0 <= i < len(cells) else ""
+
+            def gi(i):
+                v = re.sub(r"[^\d]", "", g(i))
                 return int(v) if v else None
 
-            def sstr(idx):
-                if idx == -1 or idx >= len(cells): return ""
-                return cells[idx].strip()
+            code      = g(i_code)
+            name      = g(i_name)
+            conducted = gi(i_conducted)
+            attended  = gi(i_attended)
 
-            code      = sstr(col["code"])
-            name      = sstr(col["name"])
-            conducted = sint(col["conducted"])
-            attended  = sint(col["attended"])
+            if not name or not conducted:
+                continue
+            if attended is None:
+                attended = 0
 
-            if not conducted:
-                nums = [int(re.sub(r"[^\d]","",c)) for c in cells if re.sub(r"[^\d]","",c) and 0 < int(re.sub(r"[^\d]","",c)) < 1000]
-                if len(nums) >= 2:
-                    conducted, attended = nums[0], nums[1]
-
-            if not conducted or conducted == 0: continue
-            if attended is None: attended = 0
-            if not name and not code:
-                for c in cells:
-                    if c and not re.match(r"^[\d\s.%()]+$", c) and len(c) > 2:
-                        name = c; break
-            if not name and not code: continue
-
-            pct = round((attended / conducted) * 100, 1)
-            courses.append({
-                "code": code or "—",
-                "name": name or code,
-                "conducted": conducted,
-                "attended": attended,
-                "percentage": pct,
-            })
+            # Merge L/S/P rows of the same subject into one
+            existing = next((c for c in courses if c["code"] == code and c["name"] == name), None)
+            if existing:
+                existing["conducted"] += conducted
+                existing["attended"]  += attended
+                existing["percentage"] = round(existing["attended"] / existing["conducted"] * 100, 1)
+            else:
+                courses.append({
+                    "code":       code,
+                    "name":       name,
+                    "conducted":  conducted,
+                    "attended":   attended,
+                    "percentage": round(attended / conducted * 100, 1),
+                })
 
         if courses:
             break
@@ -109,58 +116,34 @@ def parse_attendance(html):
 
 @app.route("/api/fetch-attendance", methods=["POST"])
 def fetch_attendance():
-    """
-    Fetch attendance using the user's browser session cookie.
-    Body: { "cookie": "PHPSESSID=abc123; _csrf=xyz..." }
-    """
     body   = request.get_json(force=True, silent=True) or {}
     cookie = (body.get("cookie") or "").strip()
 
     if not cookie:
         return jsonify({"ok": False, "error": "No cookie provided."}), 400
 
-    headers = {**HEADERS, "Cookie": cookie}
+    hdrs = {**HEADERS, "Cookie": cookie}
 
+    # Just GET the attendance results page directly —
+    # the user already clicked Search on ERP so the session holds the result
     try:
-        resp = requests.get(ATTENDANCE_URL, headers=headers, timeout=15, allow_redirects=True)
+        resp = requests.get(ATTEND_URL, headers=hdrs, timeout=15, allow_redirects=True)
     except Exception as e:
-        return jsonify({"ok": False, "error": f"Request failed: {str(e)}"}), 500
+        return jsonify({"ok": False, "error": f"Network error: {e}"}), 500
 
-    # If redirected back to login, cookie is invalid/expired
-    if "login" in resp.url.lower() or "LoginForm" in resp.text:
-        return jsonify({"ok": False, "error": "Session expired or invalid. Please copy your cookie again from the ERP."}), 401
-
-    soup = BeautifulSoup(resp.text, "html.parser")
-
-    # Try to auto-submit search form to get attendance data
-    form = soup.find("form", method=re.compile("post", re.I))
-    if form and not any("attendance" in str(td).lower() for td in soup.find_all("td")):
-        csrf_inp = form.find("input", {"name": "_csrf"}) or soup.find("input", {"name": "_csrf"})
-        data = {}
-        if csrf_inp: data["_csrf"] = csrf_inp.get("value","")
-        for inp in form.find_all("input"):
-            n, v, t = inp.get("name",""), inp.get("value",""), inp.get("type","text").lower()
-            if n and t not in ("submit","button","reset"): data[n] = v
-        for sel in form.find_all("select"):
-            n = sel.get("name","")
-            if not n: continue
-            opts = [o for o in sel.find_all("option") if o.get("value","").strip() not in ("","0")]
-            if opts: data[n] = opts[0]["value"]
-        action = form.get("action","") or ATTENDANCE_URL
-        if not action.startswith("http"): action = ERP_BASE + "/" + action.lstrip("/")
-        resp2 = requests.post(action, data=data, headers={**headers, "Referer": ATTENDANCE_URL}, timeout=15)
-        html  = resp2.text
-    else:
-        html = resp.text
-
-    student_name, courses = parse_attendance(html)
-
-    if not courses:
-        snippet = BeautifulSoup(html, "html.parser").get_text()[:600]
+    # Redirected to login = cookie expired
+    if "LoginForm" in resp.text or "login" in resp.url.lower():
         return jsonify({
             "ok": False,
-            "error": "Logged in but couldn't find the attendance table. Make sure you're on the Attendance Register page on ERP and have searched for a semester.",
-            "debug": snippet
+            "error": "Session expired or invalid. Go back to the ERP, make sure you're logged in and the attendance table is visible, then copy the cookie again."
+        }), 401
+
+    student_name, courses = parse_kl_table(resp.text)
+
+    if not courses:
+        return jsonify({
+            "ok": False,
+            "error": "Could not find attendance data. Make sure: (1) you are on the Attendance Register page, (2) you selected the year & semester and clicked Search so the table is visible, THEN copy the cookie."
         })
 
     return jsonify({"ok": True, "studentName": student_name, "courses": courses})
