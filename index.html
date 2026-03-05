@@ -6,452 +6,214 @@
 <title>KL Attend — Attendance Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ─── RESET & VARS ─── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg:       #06060d;
-  --s1:       #0e0e1c;
-  --s2:       #15152a;
-  --s3:       #1d1d35;
-  --border:   rgba(255,255,255,0.06);
-  --border2:  rgba(255,255,255,0.11);
-  --blue:     #4f8cff;
-  --blue-d:   #2563eb;
-  --red:      #ff4545;
-  --orange:   #ff9500;
-  --green:    #00d26a;
-  --text:     #eaeaf8;
-  --muted:    #5a5a7a;
-  --sans:     'Bricolage Grotesque', sans-serif;
-  --mono:     'JetBrains Mono', monospace;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#06060d;--s1:#0e0e1c;--s2:#15152a;--s3:#1d1d35;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --blue:#4f8cff;--red:#ff4545;--orange:#ff9500;--green:#00d26a;
+  --text:#eaeaf8;--muted:#5a5a7a;
+  --sans:'Bricolage Grotesque',sans-serif;--mono:'JetBrains Mono',monospace;
 }
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
 
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  overflow-x: hidden;
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(79,140,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(79,140,255,0.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;
 }
+.orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);animation:orbFloat 18s ease-in-out infinite;}
+.orb-1{width:550px;height:550px;background:rgba(79,140,255,0.08);top:-180px;right:-180px;}
+.orb-2{width:400px;height:400px;background:rgba(0,210,106,0.05);bottom:-100px;left:-100px;animation-delay:-8s;animation-duration:22s;}
+.orb-3{width:300px;height:300px;background:rgba(255,69,69,0.04);top:40%;left:40%;animation-delay:-14s;animation-duration:26s;}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(20px,-30px) scale(1.04);}66%{transform:translate(-15px,15px) scale(0.97);}}
 
-/* ─── NOISE + GRID BG ─── */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(79,140,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79,140,255,0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none;
-  z-index: 0;
-}
+.page{position:relative;z-index:1;min-height:100vh;}
+.page-hidden{display:none!important;}
 
-/* ─── GLOW ORBS ─── */
-.orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
-.orb {
-  position:absolute; border-radius:50%; filter:blur(90px);
-  animation: orbFloat 18s ease-in-out infinite;
-}
-.orb-1 { width:550px; height:550px; background:rgba(79,140,255,0.08); top:-180px; right:-180px; }
-.orb-2 { width:400px; height:400px; background:rgba(0,210,106,0.05); bottom:-100px; left:-100px; animation-delay:-8s; animation-duration:22s; }
-.orb-3 { width:300px; height:300px; background:rgba(255,69,69,0.04); top:40%; left:40%; animation-delay:-14s; animation-duration:26s; }
-@keyframes orbFloat { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(20px,-30px) scale(1.04);} 66%{transform:translate(-15px,15px) scale(0.97);} }
-
-/* ─── PAGES ─── */
-.page { position:relative; z-index:1; min-height:100vh; }
-.page-hidden { display:none !important; }
-
-/* ─── LOGIN ─── */
-#loginPage {
-  display:flex; align-items:center; justify-content:center;
-  padding:20px;
-}
-
-.login-container { width:100%; max-width:440px; }
-
-.login-eyebrow {
-  display:inline-flex; align-items:center; gap:8px;
-  background:rgba(79,140,255,0.1);
-  border:1px solid rgba(79,140,255,0.2);
-  border-radius:100px;
-  padding:6px 14px;
-  font-size:11px; font-weight:600; color:var(--blue);
-  letter-spacing:0.06em; text-transform:uppercase;
+/* ── LOGIN ── */
+#loginPage{display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-container{width:100%;max-width:440px;}
+.login-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(79,140,255,0.1);border:1px solid rgba(79,140,255,0.2);
+  border-radius:100px;padding:6px 14px;
+  font-size:11px;font-weight:600;color:var(--blue);letter-spacing:0.06em;text-transform:uppercase;
   margin-bottom:24px;
 }
+.login-heading{font-size:clamp(32px,6vw,48px);font-weight:800;letter-spacing:-1.5px;line-height:1.05;margin-bottom:12px;}
+.login-heading span{background:linear-gradient(135deg,var(--blue),#a5c8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.login-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:36px;}
+.login-card{
+  background:rgba(14,14,28,0.7);backdrop-filter:blur(24px);
+  border:1px solid var(--border2);border-radius:24px;padding:36px;
+  box-shadow:0 0 80px rgba(79,140,255,0.07),0 32px 64px rgba(0,0,0,0.4);
+}
+.field{margin-bottom:18px;}
+.field label{display:block;margin-bottom:7px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;}
+.field input{
+  width:100%;background:var(--s2);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;color:var(--text);font-family:var(--sans);font-size:15px;
+  outline:none;transition:border-color 0.3s,box-shadow 0.3s;
+}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,140,255,0.12);}
+.field input::placeholder{color:var(--muted);}
+.login-btn{
+  width:100%;padding:15px;background:var(--blue);border:none;border-radius:12px;
+  color:#fff;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;
+  margin-top:6px;transition:all 0.25s;position:relative;overflow:hidden;
+}
+.login-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.12),transparent);opacity:0;transition:0.2s;}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(79,140,255,0.45);}
+.login-btn:hover::after{opacity:1;}
+.login-btn:active{transform:translateY(0);}
+.login-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.login-footer{
+  margin-top:20px;padding:14px;
+  background:rgba(79,140,255,0.04);border:1px dashed rgba(79,140,255,0.15);
+  border-radius:12px;font-size:12px;color:var(--muted);line-height:1.7;text-align:center;
+}
+.login-footer a{color:var(--blue);text-decoration:none;}
+.error-msg{
+  background:rgba(255,69,69,0.08);border:1px solid rgba(255,69,69,0.2);
+  border-radius:10px;padding:12px 16px;font-size:13px;color:var(--red);
+  margin-bottom:16px;display:none;
+}
+.error-msg.show{display:block;animation:shakeIn 0.4s ease;}
+@keyframes shakeIn{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.btn-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-.login-heading {
-  font-size:clamp(32px,6vw,48px);
-  font-weight:800;
-  letter-spacing:-1.5px;
-  line-height:1.05;
-  margin-bottom:12px;
+/* ── MAIN APP ── */
+#mainApp{display:flex;flex-direction:column;}
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,6,13,0.85);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);padding:0 32px;
+  height:60px;display:flex;align-items:center;gap:16px;
 }
-.login-heading span {
-  background:linear-gradient(135deg,var(--blue),#a5c8ff);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-}
+.topbar-logo{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--blue);}
+.topbar-sep{width:1px;height:20px;background:var(--border);}
+.topbar-user{font-family:var(--mono);font-size:12px;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.topbar-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;}
+.topbar-btn:hover{color:var(--text);border-color:var(--border2);}
+.topbar-btn.danger:hover{color:var(--red);border-color:rgba(255,69,69,0.3);}
+.tab-nav{border-bottom:1px solid var(--border);padding:0 32px;display:flex;background:var(--s1);}
+.tab-btn{padding:14px 20px;border:none;background:transparent;color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);background:rgba(79,140,255,0.04);}
+.main-content{flex:1;padding:32px;max-width:1000px;margin:0 auto;width:100%;}
+.tab-section{display:none;}
+.tab-section.active{display:block;animation:sIn 0.4s cubic-bezier(0.16,1,0.3,1);}
+@keyframes sIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 
-.login-sub {
-  font-size:14px; color:var(--muted);
-  line-height:1.7; margin-bottom:36px;
-}
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:20px 18px;transition:all 0.3s;}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,0.3);}
+.stat-val{font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;margin-bottom:5px;}
+.stat-lbl{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.07em;}
 
-.login-card {
-  background:rgba(14,14,28,0.7);
-  backdrop-filter:blur(24px);
-  border:1px solid var(--border2);
-  border-radius:24px;
-  padding:36px;
-  box-shadow:0 0 80px rgba(79,140,255,0.07), 0 32px 64px rgba(0,0,0,0.4);
-}
+/* Alerts */
+.alert{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border-radius:14px;margin-bottom:10px;border-left:3px solid;font-size:13px;line-height:1.6;animation:alertIn 0.4s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes alertIn{from{opacity:0;transform:translateX(-16px);}to{opacity:1;transform:translateX(0);}}
+.alert-red{background:rgba(255,69,69,0.06);border-color:var(--red);}
+.alert-orange{background:rgba(255,149,0,0.06);border-color:var(--orange);}
+.alert-green{background:rgba(0,210,106,0.06);border-color:var(--green);}
+.alert-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.alert-body strong{display:block;font-size:14px;font-weight:700;margin-bottom:2px;}
 
-.field { margin-bottom:18px; }
-.field label {
-  display:block; margin-bottom:7px;
-  font-size:11px; font-weight:600; color:var(--muted);
-  text-transform:uppercase; letter-spacing:0.09em;
+/* Course cards */
+.section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin:20px 0 12px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.courses-grid{display:grid;gap:10px;}
+.course-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:16px;
+  padding:18px 22px;display:grid;grid-template-columns:1fr auto;
+  align-items:center;gap:20px;transition:all 0.3s;position:relative;overflow:hidden;
 }
-.field input {
-  width:100%;
-  background:var(--s2); border:1px solid var(--border);
-  border-radius:12px; padding:14px 16px;
-  color:var(--text); font-family:var(--sans); font-size:15px;
-  outline:none; transition:border-color 0.3s, box-shadow 0.3s;
-}
-.field input:focus {
-  border-color:var(--blue);
-  box-shadow:0 0 0 3px rgba(79,140,255,0.12);
-}
-.field input::placeholder { color:var(--muted); }
+.course-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;transition:background 0.3s;}
+.course-card.danger::before{background:var(--red);}
+.course-card.warn::before{background:var(--orange);}
+.course-card.safe::before{background:var(--green);}
+.course-card:hover{border-color:var(--border2);transform:translateX(4px);box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+.cc-name{font-size:15px;font-weight:700;margin-bottom:3px;}
+.cc-code{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px;}
+.bar-wrap{background:var(--s3);height:5px;border-radius:100px;overflow:hidden;width:100%;margin-bottom:8px;}
+.bar-fill{height:100%;border-radius:100px;transition:width 0.9s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;}
+.bar-fill::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:shimmer 2.5s ease-in-out infinite;}
+@keyframes shimmer{to{left:100%;}}
+.cc-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
+.chip{display:inline-block;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:0.04em;}
+.chip-red{background:rgba(255,69,69,0.14);color:var(--red);}
+.chip-orange{background:rgba(255,149,0,0.14);color:var(--orange);}
+.chip-green{background:rgba(0,210,106,0.14);color:var(--green);}
+.cc-right{text-align:center;flex-shrink:0;}
+.cc-pct{font-family:var(--mono);font-size:28px;font-weight:600;line-height:1;margin-bottom:4px;}
+.cc-pct.danger{color:var(--red);}
+.cc-pct.warn{color:var(--orange);}
+.cc-pct.safe{color:var(--green);}
+.cc-action{font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;display:inline-block;margin-top:4px;}
+.cc-action.danger{background:rgba(255,69,69,0.12);color:var(--red);}
+.cc-action.warn{background:rgba(255,149,0,0.12);color:var(--orange);}
+.cc-action.safe{background:rgba(0,210,106,0.12);color:var(--green);}
 
-.login-btn {
-  width:100%; padding:15px;
-  background:var(--blue); border:none; border-radius:12px;
-  color:#fff; font-family:var(--sans); font-size:15px; font-weight:700;
-  cursor:pointer; margin-top:6px;
-  transition:all 0.25s; position:relative; overflow:hidden;
-}
-.login-btn::after {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.12),transparent);
-  opacity:0; transition:0.2s;
-}
-.login-btn:hover { transform:translateY(-2px); box-shadow:0 10px 32px rgba(79,140,255,0.45); }
-.login-btn:hover::after { opacity:1; }
-.login-btn:active { transform:translateY(0); }
-.login-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+/* ── CHAT ── */
+.chat-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;}
+.chat-panel{background:var(--s1);border:1px solid var(--border2);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;height:calc(100vh - 210px);min-height:480px;}
+.chat-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.ai-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+.chat-title{font-size:14px;font-weight:700;}
+.chat-sub{font-size:11px;color:var(--muted);}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--s3) transparent;}
+.chat-msgs::-webkit-scrollbar{width:4px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--s3);border-radius:2px;}
+.msg{display:flex;gap:10px;margin-bottom:14px;animation:msgIn 0.3s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.msg.user{flex-direction:row-reverse;}
+.msg-av{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.msg.ai .msg-av{background:rgba(79,140,255,0.15);border:1px solid rgba(79,140,255,0.2);}
+.msg.user .msg-av{background:var(--blue);}
+.msg-body{max-width:80%;padding:11px 15px;border-radius:14px;font-size:13px;line-height:1.65;}
+.msg.ai .msg-body{background:var(--s2);border:1px solid var(--border);border-top-left-radius:3px;}
+.msg.user .msg-body{background:rgba(79,140,255,0.14);border:1px solid rgba(79,140,255,0.2);border-top-right-radius:3px;}
+.chat-input-area{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.chat-input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:border-color 0.2s;}
+.chat-input:focus{border-color:var(--blue);}
+.chat-input::placeholder{color:var(--muted);}
+.send-btn{width:40px;height:40px;border-radius:10px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:15px;flex-shrink:0;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
+.send-btn:hover{transform:scale(1.08);box-shadow:0 4px 18px rgba(79,140,255,0.5);}
 
-.login-footer {
-  margin-top:20px;
-  padding:14px;
-  background:rgba(79,140,255,0.04);
-  border:1px dashed rgba(79,140,255,0.15);
-  border-radius:12px;
-  font-size:12px; color:var(--muted); line-height:1.7;
-  text-align:center;
-}
-.login-footer a { color:var(--blue); text-decoration:none; }
-.login-footer a:hover { text-decoration:underline; }
-
-.error-msg {
-  background:rgba(255,69,69,0.08);
-  border:1px solid rgba(255,69,69,0.2);
-  border-radius:10px;
-  padding:12px 16px;
-  font-size:13px; color:var(--red);
-  margin-bottom:16px;
-  display:none;
-}
-.error-msg.show { display:block; animation:shakeIn 0.4s ease; }
-@keyframes shakeIn { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
-
-/* Spinner inside button */
-.btn-spinner {
-  display:inline-block;
-  width:16px; height:16px;
-  border:2px solid rgba(255,255,255,0.3);
-  border-top-color:#fff;
-  border-radius:50%;
-  animation:spin 0.7s linear infinite;
-  vertical-align:middle; margin-right:6px;
-}
-@keyframes spin { to { transform:rotate(360deg); } }
-
-/* ─── MAIN APP ─── */
-#mainApp { display:flex; flex-direction:column; }
-
-/* Topbar */
-.topbar {
-  position:sticky; top:0; z-index:100;
-  background:rgba(6,6,13,0.85);
-  backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);
-  padding:0 32px;
-  height:60px;
-  display:flex; align-items:center; gap:16px;
-}
-.topbar-logo {
-  font-family:var(--mono); font-size:15px; font-weight:600;
-  color:var(--blue); letter-spacing:-0.02em;
-}
-.topbar-sep { width:1px; height:20px; background:var(--border); }
-.topbar-user {
-  font-family:var(--mono); font-size:12px; color:var(--muted);
-  max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
-.topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
-.topbar-btn {
-  padding:7px 14px; border-radius:8px; border:1px solid var(--border);
-  background:transparent; color:var(--muted); font-family:var(--sans);
-  font-size:12px; font-weight:500; cursor:pointer; transition:all 0.2s;
-}
-.topbar-btn:hover { color:var(--text); border-color:var(--border2); }
-.topbar-btn.danger:hover { color:var(--red); border-color:rgba(255,69,69,0.3); }
-
-/* Tab nav */
-.tab-nav {
-  border-bottom:1px solid var(--border);
-  padding:0 32px;
-  display:flex; gap:0;
-  background:var(--s1);
-}
-.tab-btn {
-  padding:14px 20px;
-  border:none; background:transparent;
-  color:var(--muted); font-family:var(--sans); font-size:13px; font-weight:500;
-  cursor:pointer; border-bottom:2px solid transparent;
-  transition:all 0.2s;
-}
-.tab-btn:hover { color:var(--text); background:rgba(255,255,255,0.02); }
-.tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); background:rgba(79,140,255,0.04); }
-
-/* Main content */
-.main-content {
-  flex:1; padding:32px; max-width:1000px;
-  margin:0 auto; width:100%;
-}
-
-/* Section animation */
-.tab-section { display:none; }
-.tab-section.active { display:block; animation:sectionIn 0.4s cubic-bezier(0.16,1,0.3,1); }
-@keyframes sectionIn { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
-
-/* ─── STATS OVERVIEW ─── */
-.stats-row {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
-  margin-bottom:24px;
-}
-.stat-card {
-  background:var(--s1); border:1px solid var(--border);
-  border-radius:16px; padding:20px 18px;
-  transition:all 0.3s;
-}
-.stat-card:hover { border-color:var(--border2); transform:translateY(-3px); box-shadow:0 12px 30px rgba(0,0,0,0.3); }
-.stat-val {
-  font-family:var(--mono); font-size:30px; font-weight:600;
-  line-height:1; margin-bottom:5px;
-}
-.stat-lbl { font-size:11px; color:var(--muted); font-weight:500; text-transform:uppercase; letter-spacing:0.07em; }
-
-/* ─── ALERTS ─── */
-.alert {
-  display:flex; align-items:flex-start; gap:12px;
-  padding:14px 18px; border-radius:14px; margin-bottom:10px;
-  border-left:3px solid; font-size:13px; line-height:1.6;
-  animation:alertIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
-}
-@keyframes alertIn { from{opacity:0;transform:translateX(-16px);} to{opacity:1;transform:translateX(0);} }
-.alert-red    { background:rgba(255,69,69,0.06);  border-color:var(--red); }
-.alert-orange { background:rgba(255,149,0,0.06);  border-color:var(--orange); }
-.alert-green  { background:rgba(0,210,106,0.06);  border-color:var(--green); }
-.alert-icon { font-size:20px; flex-shrink:0; margin-top:1px; }
-.alert-body strong { display:block; font-size:14px; font-weight:700; margin-bottom:2px; }
-
-/* ─── COURSE CARDS ─── */
-.section-label {
-  font-size:11px; font-weight:700; color:var(--muted);
-  text-transform:uppercase; letter-spacing:0.1em;
-  margin:20px 0 12px;
-  display:flex; align-items:center; gap:8px;
-}
-.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
-
-.courses-grid { display:grid; gap:10px; }
-
-.course-card {
-  background:var(--s1); border:1px solid var(--border);
-  border-radius:16px; padding:18px 22px;
-  display:grid; grid-template-columns:1fr auto;
-  align-items:center; gap:20px;
-  transition:all 0.3s; position:relative; overflow:hidden;
-}
-.course-card::before {
-  content:''; position:absolute; left:0; top:0; bottom:0;
-  width:3px; transition:background 0.3s;
-}
-.course-card.danger::before { background:var(--red); }
-.course-card.warn::before   { background:var(--orange); }
-.course-card.safe::before   { background:var(--green); }
-.course-card:hover { border-color:var(--border2); transform:translateX(4px); box-shadow:0 8px 24px rgba(0,0,0,0.25); }
-
-.cc-left {}
-.cc-name { font-size:15px; font-weight:700; margin-bottom:3px; }
-.cc-code { font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:10px; }
-
-.bar-wrap { background:var(--s3); height:5px; border-radius:100px; overflow:hidden; width:100%; margin-bottom:8px; }
-.bar-fill { height:100%; border-radius:100px; transition:width 0.9s cubic-bezier(0.16,1,0.3,1); position:relative; overflow:hidden; }
-.bar-fill::after {
-  content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
-  animation:shimmer 2.5s ease-in-out infinite;
-}
-@keyframes shimmer { to { left:100%; } }
-
-.cc-meta { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--muted); }
-.chip {
-  display:inline-block; padding:3px 10px; border-radius:100px;
-  font-size:10px; font-weight:700; letter-spacing:0.04em;
-}
-.chip-red    { background:rgba(255,69,69,0.14);  color:var(--red); }
-.chip-orange { background:rgba(255,149,0,0.14);  color:var(--orange); }
-.chip-green  { background:rgba(0,210,106,0.14);  color:var(--green); }
-
-.cc-right { text-align:center; flex-shrink:0; }
-.cc-pct {
-  font-family:var(--mono); font-size:28px; font-weight:600;
-  line-height:1; margin-bottom:4px;
-}
-.cc-pct.danger { color:var(--red); }
-.cc-pct.warn   { color:var(--orange); }
-.cc-pct.safe   { color:var(--green); }
-.cc-action { font-size:12px; font-weight:600; padding:5px 10px; border-radius:8px; }
-.cc-action.danger { background:rgba(255,69,69,0.12); color:var(--red); }
-.cc-action.warn   { background:rgba(255,149,0,0.12); color:var(--orange); }
-.cc-action.safe   { background:rgba(0,210,106,0.12); color:var(--green); }
-
-/* ─── CHAT ─── */
-.chat-layout { display:grid; grid-template-columns:1fr 300px; gap:20px; }
-
-.chat-panel {
-  background:var(--s1); border:1px solid var(--border2);
-  border-radius:20px; display:flex; flex-direction:column;
-  overflow:hidden; height:calc(100vh - 200px); min-height:480px;
-}
-.chat-header {
-  padding:18px 22px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:10px;
-}
-.ai-pulse { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
-.chat-title { font-size:14px; font-weight:700; }
-.chat-sub { font-size:11px; color:var(--muted); }
-
-.chat-msgs {
-  flex:1; overflow-y:auto; padding:18px;
-  scrollbar-width:thin; scrollbar-color:var(--s3) transparent;
-}
-.chat-msgs::-webkit-scrollbar { width:4px; }
-.chat-msgs::-webkit-scrollbar-thumb { background:var(--s3); border-radius:2px; }
-
-.msg { display:flex; gap:10px; margin-bottom:14px; animation:msgIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
-@keyframes msgIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
-.msg.user { flex-direction:row-reverse; }
-.msg-av {
-  width:30px; height:30px; border-radius:9px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:13px; flex-shrink:0;
-}
-.msg.ai   .msg-av { background:rgba(79,140,255,0.15); border:1px solid rgba(79,140,255,0.2); }
-.msg.user .msg-av { background:var(--blue); }
-.msg-body {
-  max-width:80%; padding:11px 15px;
-  border-radius:14px; font-size:13px; line-height:1.65;
-}
-.msg.ai   .msg-body { background:var(--s2); border:1px solid var(--border); border-top-left-radius:3px; }
-.msg.user .msg-body { background:rgba(79,140,255,0.14); border:1px solid rgba(79,140,255,0.2); border-top-right-radius:3px; }
-
-.chat-input-area { padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:8px; }
-.chat-input {
-  flex:1; background:var(--s2); border:1px solid var(--border);
-  border-radius:12px; padding:11px 14px;
-  color:var(--text); font-family:var(--sans); font-size:13px;
-  outline:none; transition:border-color 0.2s; resize:none;
-}
-.chat-input:focus { border-color:var(--blue); }
-.chat-input::placeholder { color:var(--muted); }
-.send-btn {
-  width:40px; height:40px; border-radius:10px; border:none;
-  background:var(--blue); color:#fff; cursor:pointer; font-size:15px;
-  flex-shrink:0; transition:all 0.2s; display:flex; align-items:center; justify-content:center;
-}
-.send-btn:hover { transform:scale(1.08); box-shadow:0 4px 18px rgba(79,140,255,0.5); }
-
-/* Quick buttons panel */
-.quick-panel {
-  background:var(--s1); border:1px solid var(--border2);
-  border-radius:20px; padding:20px;
-  height:calc(100vh - 200px); min-height:480px; overflow-y:auto;
-}
-.qp-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.09em; margin-bottom:12px; }
-.qb {
-  display:block; width:100%; text-align:left;
-  padding:10px 14px; background:var(--s2); border:1px solid var(--border);
-  border-radius:10px; color:var(--text); font-family:var(--sans);
-  font-size:12px; cursor:pointer; margin-bottom:7px; transition:all 0.2s;
-}
-.qb:hover { border-color:rgba(79,140,255,0.3); background:rgba(79,140,255,0.06); color:var(--blue); }
-
-.quick-subjects { margin-top:16px; }
-.qs-item {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:8px 0; border-bottom:1px solid var(--border); font-size:12px;
-}
-.qs-item:last-child { border:none; }
-.qs-pct { font-family:var(--mono); font-weight:600; font-size:12px; }
-
-/* Typing dots */
-.typing-dots { display:inline-flex; gap:4px; align-items:center; padding:4px 0; }
-.typing-dots span { width:6px; height:6px; border-radius:50%; background:var(--muted); animation:tdot 1.4s infinite ease-in-out; }
-.typing-dots span:nth-child(2){animation-delay:0.2s;} .typing-dots span:nth-child(3){animation-delay:0.4s;}
-@keyframes tdot{0%,80%,100%{transform:scale(0.7);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
-
-/* Empty state */
-.empty { text-align:center; padding:60px 20px; color:var(--muted); }
-.empty-icon { font-size:48px; margin-bottom:14px; opacity:0.35; }
-.empty-text { font-size:14px; line-height:1.7; }
+/* Quick panel */
+.quick-panel{background:var(--s1);border:1px solid var(--border2);border-radius:20px;padding:18px;height:calc(100vh - 210px);min-height:480px;overflow-y:auto;}
+.qp-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:10px;}
+.qb{display:block;width:100%;text-align:left;padding:9px 12px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--sans);font-size:12px;cursor:pointer;margin-bottom:6px;transition:all 0.2s;}
+.qb:hover{border-color:rgba(79,140,255,0.3);background:rgba(79,140,255,0.06);color:var(--blue);}
+.qs-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.qs-item:last-child{border:none;}
+.qs-pct{font-family:var(--mono);font-weight:600;font-size:12px;}
 
 /* Toast */
-.toast-wrap { position:fixed; top:20px; right:20px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-.toast {
-  padding:12px 20px; border-radius:12px; font-size:13px; font-weight:600;
-  min-width:220px; max-width:320px;
-  animation:toastIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
-  box-shadow:0 8px 30px rgba(0,0,0,0.4);
-}
-@keyframes toastIn { from{opacity:0;transform:translateX(80px);} to{opacity:1;transform:translateX(0);} }
-.toast-success { background:rgba(0,60,30,0.95); border:1px solid rgba(0,210,106,0.3); color:#4ade80; }
-.toast-error   { background:rgba(60,0,0,0.95);  border:1px solid rgba(255,69,69,0.3);  color:#ff6b6b; }
-.toast-info    { background:rgba(0,15,60,0.95); border:1px solid rgba(79,140,255,0.3); color:#7ab4ff; }
+.toast-wrap{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;min-width:220px;max-width:320px;animation:toastIn 0.4s cubic-bezier(0.16,1,0.3,1) both;box-shadow:0 8px 30px rgba(0,0,0,0.4);}
+@keyframes toastIn{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:translateX(0);}}
+.toast-success{background:rgba(0,60,30,0.95);border:1px solid rgba(0,210,106,0.3);color:#4ade80;}
+.toast-error{background:rgba(60,0,0,0.95);border:1px solid rgba(255,69,69,0.3);color:#ff6b6b;}
+.toast-info{background:rgba(0,15,60,0.95);border:1px solid rgba(79,140,255,0.3);color:#7ab4ff;}
 
-/* Responsive */
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-icon{font-size:48px;margin-bottom:14px;opacity:0.35;}
+.empty-text{font-size:14px;line-height:1.7;}
+
 @media(max-width:768px){
-  .topbar { padding:0 16px; }
-  .tab-nav { padding:0 16px; }
-  .main-content { padding:16px; }
-  .stats-row { grid-template-columns:repeat(2,1fr); }
-  .chat-layout { grid-template-columns:1fr; }
-  .quick-panel { display:none; }
-  .course-card { grid-template-columns:1fr; }
-  .cc-right { text-align:left; display:flex; gap:12px; align-items:center; }
-  .login-card { padding:24px; }
-}
-@media(max-width:480px){
-  .stats-row { grid-template-columns:repeat(2,1fr); }
-  .tab-btn { font-size:12px; padding:12px 12px; }
+  .topbar{padding:0 16px;}.tab-nav{padding:0 16px;}.main-content{padding:16px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .chat-layout{grid-template-columns:1fr;}.quick-panel{display:none;}
+  .course-card{grid-template-columns:1fr;}.cc-right{text-align:left;display:flex;gap:12px;align-items:center;}
+  .login-card{padding:24px;}
 }
 </style>
 </head>
@@ -462,19 +224,17 @@ body::before {
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
 </div>
-
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- ════════ LOGIN PAGE ════════ -->
+<!-- ════ LOGIN ════ -->
 <div id="loginPage" class="page">
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
     <div class="login-container">
       <div class="login-eyebrow">🎓 KL University</div>
       <h1 class="login-heading">Track your<br><span>attendance</span>,<br>stay safe.</h1>
-      <p class="login-sub">Sign in with your KL ERP credentials. We log in, read your attendance, and show it beautifully — no data is stored anywhere.</p>
-
+      <p class="login-sub">Sign in with your KL ERP credentials. We fetch your attendance live — nothing is stored anywhere.</p>
       <div class="login-card">
-        <div class="error-msg" id="loginError">Invalid credentials</div>
+        <div class="error-msg" id="loginError"></div>
         <div class="field">
           <label>Student ID / Username</label>
           <input id="loginUser" type="text" placeholder="e.g. 2200030123" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -483,23 +243,19 @@ body::before {
           <label>ERP Password</label>
           <input id="loginPass" type="password" placeholder="Your ERP password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
         </div>
-        <button class="login-btn" id="loginBtn" onclick="doLogin()">
-          Sign In & Fetch Attendance →
-        </button>
+        <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In & Fetch Attendance →</button>
       </div>
-
       <div class="login-footer">
-        🔒 Your credentials are sent directly to KL ERP and never stored.<br>
-        Data is cleared the moment you close or refresh this page.<br>
+        🔒 Credentials go directly to KL ERP — never stored anywhere.<br>
+        Everything clears the moment you close or refresh.<br>
         <a href="https://newerp.kluniversity.in" target="_blank" rel="noopener">Open KL ERP directly ↗</a>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════ MAIN APP ════════ -->
+<!-- ════ MAIN APP ════ -->
 <div id="mainApp" class="page page-hidden">
-
   <div class="topbar">
     <div class="topbar-logo">KL_ATTEND</div>
     <div class="topbar-sep"></div>
@@ -511,95 +267,70 @@ body::before {
   </div>
 
   <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('attendance', this)">📊 Attendance</button>
-    <button class="tab-btn"        onclick="switchTab('chat', this)">🤖 AI Assistant</button>
+    <button class="tab-btn active" onclick="switchTab('attendance',this)">📊 Attendance</button>
+    <button class="tab-btn"        onclick="switchTab('chat',this)">💬 Ask Bot</button>
   </div>
 
   <div class="main-content">
 
-    <!-- ── ATTENDANCE TAB ── -->
+    <!-- ATTENDANCE TAB -->
     <div id="tab-attendance" class="tab-section active">
-
-      <!-- Stats overview -->
       <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-val" id="sv-total" style="color:var(--blue)">—</div>
-          <div class="stat-lbl">Subjects</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val" id="sv-low" style="color:var(--red)">—</div>
-          <div class="stat-lbl">Below 75%</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val" id="sv-avg" style="color:var(--green)">—</div>
-          <div class="stat-lbl">Average</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val" id="sv-safe" style="color:var(--orange)">—</div>
-          <div class="stat-lbl">75–80% (Caution)</div>
-        </div>
+        <div class="stat-card"><div class="stat-val" id="sv-total" style="color:var(--blue)">—</div><div class="stat-lbl">Subjects</div></div>
+        <div class="stat-card"><div class="stat-val" id="sv-low"   style="color:var(--red)">—</div><div class="stat-lbl">Below 75%</div></div>
+        <div class="stat-card"><div class="stat-val" id="sv-avg"   style="color:var(--green)">—</div><div class="stat-lbl">Average</div></div>
+        <div class="stat-card"><div class="stat-val" id="sv-warn"  style="color:var(--orange)">—</div><div class="stat-lbl">75–80% Caution</div></div>
       </div>
-
-      <!-- Alerts -->
       <div id="alertsZone"></div>
-
-      <!-- Course list -->
       <div class="section-label">All Subjects</div>
       <div class="courses-grid" id="courseGrid">
-        <div class="empty">
-          <div class="empty-icon">📋</div>
-          <div class="empty-text">Loading attendance data…</div>
-        </div>
+        <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Loading…</div></div>
       </div>
-
     </div>
 
-    <!-- ── CHAT TAB ── -->
+    <!-- CHAT TAB -->
     <div id="tab-chat" class="tab-section">
       <div class="chat-layout">
-
         <div class="chat-panel">
           <div class="chat-header">
             <div class="ai-pulse"></div>
             <div>
-              <div class="chat-title">KL Attendance AI</div>
-              <div class="chat-sub">Knows your real-time data • Powered by Claude</div>
+              <div class="chat-title">Attendance Bot</div>
+              <div class="chat-sub">Answers based on your live data</div>
             </div>
           </div>
           <div class="chat-msgs" id="chatMsgs">
             <div class="msg ai">
               <div class="msg-av">🤖</div>
               <div class="msg-body">
-                Hi! I'm your KL attendance assistant. I have your current attendance data loaded in real-time.<br><br>
-                Ask me anything:<br>
-                • "Can I skip Data Structures tomorrow?"<br>
+                Hi! I know your current attendance. Ask me anything:<br><br>
+                • "Can I skip Data Structures?"<br>
                 • "How many classes must I attend in Physics?"<br>
-                • "Which subjects are most at risk?"
+                • "Which subjects are most at risk?"<br>
+                • "Give me a full summary"
               </div>
             </div>
           </div>
           <div class="chat-input-area">
-            <input class="chat-input" id="chatInput" placeholder="Ask about your attendance…" onkeydown="if(event.key==='Enter')sendAI()">
-            <button class="send-btn" onclick="sendAI()">➤</button>
+            <input class="chat-input" id="chatInput" placeholder="Ask about your attendance…" onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="send-btn" onclick="sendMsg()">➤</button>
           </div>
         </div>
 
         <div class="quick-panel">
           <div class="qp-label">⚡ Quick Questions</div>
-          <button class="qb" onclick="quickQ('Which subjects are below 75% attendance?')">🚨 Subjects below 75%?</button>
-          <button class="qb" onclick="quickQ('How many classes can I skip in each subject and stay above 75%?')">✅ How many can I skip?</button>
-          <button class="qb" onclick="quickQ('For each subject below 75%, how many consecutive classes must I attend to reach 75%?')">📈 How many must I attend?</button>
-          <button class="qb" onclick="quickQ('Give me a full summary of all subjects with status')">📋 Full summary</button>
-          <button class="qb" onclick="quickQ('What is my overall attendance average?')">🎯 Overall average?</button>
-          <button class="qb" onclick="quickQ('Which is my most dangerous subject attendance-wise?')">🔥 Most at risk?</button>
-          <button class="qb" onclick="quickQ('If I skip 3 more classes of my worst subject, what happens?')">⚠️ If I skip 3 more?</button>
+          <button class="qb" onclick="quickQ('Which subjects are below 75%?')">🚨 Below 75%?</button>
+          <button class="qb" onclick="quickQ('How many classes can I skip in each subject?')">✅ Can I skip?</button>
+          <button class="qb" onclick="quickQ('How many must I attend to reach 75% in each subject?')">📈 Must attend?</button>
+          <button class="qb" onclick="quickQ('Full summary of all subjects')">📋 Full summary</button>
+          <button class="qb" onclick="quickQ('Overall attendance average?')">🎯 Overall avg?</button>
+          <button class="qb" onclick="quickQ('Most at risk subject?')">🔥 Most at risk?</button>
 
-          <div class="quick-subjects">
-            <div class="qp-label" style="margin-top:16px;">📚 Your Subjects</div>
-            <div id="quickSubjects"><span style="color:var(--muted);font-size:12px;">Loading…</span></div>
+          <div style="margin-top:16px;">
+            <div class="qp-label">📚 Your Subjects</div>
+            <div id="quickSubjects"><span style="color:var(--muted);font-size:12px;">—</span></div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -607,43 +338,36 @@ body::before {
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
-//  CONFIG — replace with your Render backend URL
-// ═══════════════════════════════════════════════════
-const API_BASE = "https://kl-attendance-backend.onrender.com"; // ← UPDATE THIS
+// ── CONFIG ─────────────────────────────────────────
+// Replace with your Render backend URL after deploying
+const API_BASE = "https://kl-attendance-backend.onrender.com";
+// ───────────────────────────────────────────────────
 
-// ═══════════════════════════════════════════════════
-//  STATE (in-memory only, cleared on refresh)
-// ═══════════════════════════════════════════════════
 let courses = [];
 let studentName = "";
-let loginCredentials = { user: "", pass: "" }; // kept only for refresh
+let savedCreds = { user: "", pass: "" };
 
-// ═══════════════════════════════════════════════════
-//  PAGE SHOW/HIDE
-// ═══════════════════════════════════════════════════
+// ── PAGES ──
 function showPage(id) {
   document.querySelectorAll(".page").forEach(p => p.classList.add("page-hidden"));
   document.getElementById(id).classList.remove("page-hidden");
 }
 
-// ═══════════════════════════════════════════════════
-//  LOGIN
-// ═══════════════════════════════════════════════════
+// ── LOGIN ──
 async function doLogin() {
   const user = document.getElementById("loginUser").value.trim();
   const pass = document.getElementById("loginPass").value;
-  const err  = document.getElementById("loginError");
-  const btn  = document.getElementById("loginBtn");
+  const errEl = document.getElementById("loginError");
+  const btn   = document.getElementById("loginBtn");
+  errEl.classList.remove("show");
 
-  err.classList.remove("show");
-  if (!user || !pass) { showError("Please enter your Student ID and password."); return; }
+  if (!user || !pass) { showErr("Enter your Student ID and password."); return; }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-spinner"></span> Signing in…';
+  btn.innerHTML = '<span class="btn-spinner"></span>Signing in…';
 
   try {
-    const res = await fetch(`${API_BASE}/api/login-attendance`, {
+    const res  = await fetch(`${API_BASE}/api/login-attendance`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: user, password: pass })
@@ -651,134 +375,107 @@ async function doLogin() {
     const data = await res.json();
 
     if (!data.ok) {
-      showError(data.error || "Login failed. Check your credentials.");
+      showErr(data.error || "Login failed. Check your credentials.");
       btn.disabled = false;
       btn.innerHTML = "Sign In & Fetch Attendance →";
       return;
     }
 
-    // Store for refresh, not persisted anywhere
-    loginCredentials = { user, pass };
-    courses = data.courses || [];
+    savedCreds  = { user, pass };
+    courses     = data.courses || [];
     studentName = data.studentName || user;
 
-    document.getElementById("topbarUser").textContent = studentName || user;
+    document.getElementById("topbarUser").textContent = studentName;
     showPage("mainApp");
-    renderDashboard();
-    toast(`Welcome, ${studentName || user}! 👋`, "success");
+    renderAll();
+    toast(`Welcome, ${studentName}! 👋`, "success");
 
   } catch (e) {
-    showError("Could not reach backend. Is the Render server running?");
+    showErr("Cannot reach backend. Make sure your Render server is running.");
     btn.disabled = false;
     btn.innerHTML = "Sign In & Fetch Attendance →";
   }
 }
 
-function showError(msg) {
-  const err = document.getElementById("loginError");
-  err.textContent = msg;
-  err.classList.add("show");
+function showErr(msg) {
+  const el = document.getElementById("loginError");
+  el.textContent = msg;
+  el.classList.add("show");
 }
 
 async function refreshData() {
-  if (!loginCredentials.user) { toast("Please log in again.", "error"); return; }
+  if (!savedCreds.user) { toast("Please log in again.", "error"); return; }
   const btn = document.getElementById("refreshBtn");
   btn.textContent = "↻ Fetching…";
   btn.disabled = true;
   try {
-    const res = await fetch(`${API_BASE}/api/login-attendance`, {
+    const res  = await fetch(`${API_BASE}/api/login-attendance`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: loginCredentials.user, password: loginCredentials.pass })
+      body: JSON.stringify({ username: savedCreds.user, password: savedCreds.pass })
     });
     const data = await res.json();
     if (data.ok) {
-      courses = data.courses || [];
+      courses     = data.courses || [];
       studentName = data.studentName || studentName;
-      renderDashboard();
+      renderAll();
       toast("Attendance refreshed ✓", "success");
     } else {
       toast(data.error || "Refresh failed.", "error");
     }
-  } catch (e) {
-    toast("Network error during refresh.", "error");
-  }
+  } catch { toast("Network error.", "error"); }
   btn.textContent = "↻ Refresh";
-  btn.disabled = false;
+  btn.disabled    = false;
 }
 
 function doLogout() {
-  courses = []; studentName = "";
-  loginCredentials = { user: "", pass: "" };
+  courses = []; studentName = ""; savedCreds = { user:"", pass:"" };
   document.getElementById("loginUser").value = "";
   document.getElementById("loginPass").value = "";
-  document.getElementById("loginError").classList.remove("show");
   document.getElementById("loginBtn").innerHTML = "Sign In & Fetch Attendance →";
+  document.getElementById("loginError").classList.remove("show");
   showPage("loginPage");
   toast("Signed out. All data cleared.", "info");
 }
 
-// ═══════════════════════════════════════════════════
-//  CALCULATIONS
-// ═══════════════════════════════════════════════════
-function classify(pct) {
-  if (pct < 65) return "danger";
-  if (pct < 75) return "warn";
-  return "safe";
-}
+// ── MATHS ──
+const classify = p => p < 65 ? "danger" : p < 75 ? "warn" : "safe";
+const canSkip  = c => c.percentage < 75 ? 0 : Math.max(0, Math.floor(c.attended / 0.75 - c.conducted));
+const mustAtt  = c => c.percentage >= 75 ? 0 : Math.max(0, Math.ceil((0.75 * c.conducted - c.attended) / 0.25));
 
-// Classes you can still skip and stay ≥75%
-function canSkip(c) {
-  if (c.percentage < 75) return 0;
-  return Math.max(0, Math.floor(c.attended / 0.75 - c.conducted));
-}
-
-// Consecutive classes you must attend to reach 75%
-function mustAttend(c) {
-  if (c.percentage >= 75) return 0;
-  return Math.max(0, Math.ceil((0.75 * c.conducted - c.attended) / 0.25));
-}
-
-// ═══════════════════════════════════════════════════
-//  RENDER DASHBOARD
-// ═══════════════════════════════════════════════════
-function renderDashboard() {
-  const total   = courses.length;
-  const low     = courses.filter(c => c.percentage < 75).length;
-  const caution = courses.filter(c => c.percentage >= 75 && c.percentage < 80).length;
-  const avg     = total ? (courses.reduce((a, c) => a + c.percentage, 0) / total).toFixed(1) : "—";
+// ── RENDER ──
+function renderAll() {
+  const total = courses.length;
+  const low   = courses.filter(c => c.percentage < 75).length;
+  const warn  = courses.filter(c => c.percentage >= 75 && c.percentage < 80).length;
+  const avg   = total ? (courses.reduce((a,c) => a + c.percentage, 0) / total).toFixed(1) : "—";
 
   document.getElementById("sv-total").textContent = total || "—";
   document.getElementById("sv-low").textContent   = low;
   document.getElementById("sv-avg").textContent   = total ? avg + "%" : "—";
-  document.getElementById("sv-safe").textContent  = caution;
+  document.getElementById("sv-warn").textContent  = warn;
 
   renderAlerts();
   renderCourses();
-  renderQuickSubjects();
+  renderQuickSubs();
 }
 
 function renderAlerts() {
   const zone = document.getElementById("alertsZone");
   const bad  = courses.filter(c => c.percentage < 75).sort((a,b) => a.percentage - b.percentage);
-
   if (!bad.length && courses.length) {
-    zone.innerHTML = `<div class="alert alert-green">
-      <div class="alert-icon">✅</div>
-      <div class="alert-body"><strong>All subjects above 75% — you're safe!</strong>Keep up the attendance to stay ahead.</div>
-    </div>`;
+    zone.innerHTML = `<div class="alert alert-green"><div class="alert-icon">✅</div><div class="alert-body"><strong>All subjects above 75% — you're safe!</strong>Keep attending to stay on track.</div></div>`;
     return;
   }
-
   zone.innerHTML = bad.map((c, i) => {
-    const isCrit = c.percentage < 65;
-    const need = mustAttend(c);
-    return `<div class="alert alert-${isCrit?"red":"orange"}" style="animation-delay:${i*0.07}s">
-      <div class="alert-icon">${isCrit?"🚨":"⚠️"}</div>
+    const crit = c.percentage < 65;
+    const need = mustAtt(c);
+    return `<div class="alert alert-${crit?"red":"orange"}" style="animation-delay:${i*0.07}s">
+      <div class="alert-icon">${crit?"🚨":"⚠️"}</div>
       <div class="alert-body">
         <strong>${c.name} — ${c.percentage}% attendance</strong>
         Attend the next <strong>${need} consecutive class${need!==1?"es":""}</strong> to reach 75%.
-        ${isCrit?'<em style="color:var(--red);font-size:12px;"> Risk of being debarred from exams!</em>':""}
+        ${crit?'<span style="color:var(--red);font-size:12px;"> Risk of debarment from exams!</span>':""}
       </div>
     </div>`;
   }).join("");
@@ -790,53 +487,45 @@ function renderCourses() {
     grid.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No attendance data found.</div></div>`;
     return;
   }
-
   const sorted = [...courses].sort((a,b) => a.percentage - b.percentage);
-
   grid.innerHTML = sorted.map((c, i) => {
     const cls  = classify(c.percentage);
     const skip = canSkip(c);
-    const must = mustAttend(c);
-    const barColor = cls==="danger"?"var(--red)":cls==="warn"?"var(--orange)":"var(--green)";
-    const barW = Math.min(c.percentage, 100).toFixed(1);
-    const chipCls = `chip-${cls==="danger"?"red":cls==="warn"?"orange":"green"}`;
+    const must = mustAtt(c);
+    const col  = cls==="danger"?"var(--red)":cls==="warn"?"var(--orange)":"var(--green)";
+    const barW = Math.min(c.percentage,100).toFixed(1);
+    const chipCls = cls==="danger"?"chip-red":cls==="warn"?"chip-orange":"chip-green";
     const chipTxt = cls==="danger"?"CRITICAL":cls==="warn"?"WARNING":"SAFE";
-
-    const actionHtml = c.percentage >= 75
-      ? `<div class="cc-action safe">Skip ${skip} more class${skip!==1?"es":""}</div>`
-      : `<div class="cc-action danger">Attend ${must} more class${must!==1?"es":""}</div>`;
+    const actionTxt = c.percentage >= 75
+      ? `Skip ${skip} more class${skip!==1?"es":""}`
+      : `Attend ${must} more class${must!==1?"es":""}`;
 
     return `<div class="course-card ${cls}" style="animation-delay:${i*0.04}s">
-      <div class="cc-left">
+      <div>
         <div class="cc-name">${c.name}</div>
-        <div class="cc-code">${c.code} &nbsp;·&nbsp; ${c.attended} / ${c.conducted} classes</div>
-        <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${barColor}"></div></div>
+        <div class="cc-code">${c.code} · ${c.attended} / ${c.conducted} classes</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${barW}%;background:${col}"></div></div>
         <div class="cc-meta"><span class="chip ${chipCls}">${chipTxt}</span><span>${c.attended} attended of ${c.conducted} held</span></div>
       </div>
       <div class="cc-right">
         <div class="cc-pct ${cls}">${c.percentage}%</div>
-        ${actionHtml}
+        <div class="cc-action ${cls}">${actionTxt}</div>
       </div>
     </div>`;
   }).join("");
 }
 
-function renderQuickSubjects() {
+function renderQuickSubs() {
   const el = document.getElementById("quickSubjects");
   if (!courses.length) { el.innerHTML = '<span style="color:var(--muted);font-size:12px;">No data</span>'; return; }
   el.innerHTML = courses.map(c => {
     const cls = classify(c.percentage);
-    const color = cls==="danger"?"var(--red)":cls==="warn"?"var(--orange)":"var(--green)";
-    return `<div class="qs-item">
-      <span style="font-size:12px">${c.name}</span>
-      <span class="qs-pct" style="color:${color}">${c.percentage}%</span>
-    </div>`;
+    const col = cls==="danger"?"var(--red)":cls==="warn"?"var(--orange)":"var(--green)";
+    return `<div class="qs-item"><span>${c.name}</span><span class="qs-pct" style="color:${col}">${c.percentage}%</span></div>`;
   }).join("");
 }
 
-// ═══════════════════════════════════════════════════
-//  TABS
-// ═══════════════════════════════════════════════════
+// ── TABS ──
 function switchTab(id, btn) {
   document.querySelectorAll(".tab-section").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
@@ -844,61 +533,19 @@ function switchTab(id, btn) {
   btn.classList.add("active");
 }
 
-// ═══════════════════════════════════════════════════
-//  AI CHAT
-// ═══════════════════════════════════════════════════
-function buildContext() {
-  if (!courses.length) return "No attendance data available yet.";
-  let ctx = `STUDENT LIVE ATTENDANCE DATA — KL University\nStudent: ${studentName}\n\n`;
-  courses.forEach(c => {
-    const skip = canSkip(c);
-    const must = mustAttend(c);
-    const status = c.percentage < 65 ? "CRITICAL (risk of debarment)" : c.percentage < 75 ? "WARNING (below 75%)" : "SAFE";
-    ctx += `Subject: ${c.name} (Code: ${c.code})\n`;
-    ctx += `  Attended: ${c.attended} / ${c.conducted} = ${c.percentage}%  |  Status: ${status}\n`;
-    ctx += c.percentage >= 75
-      ? `  Can skip: ${skip} more class${skip!==1?"es":""} and still stay ≥75%\n\n`
-      : `  Must attend: ${must} consecutive classes to reach exactly 75%\n\n`;
-  });
-  const avg = (courses.reduce((a,c)=>a+c.percentage,0)/courses.length).toFixed(1);
-  ctx += `Overall average: ${avg}% | Subjects below 75%: ${courses.filter(c=>c.percentage<75).length} of ${courses.length}\n`;
-  ctx += `Minimum attendance requirement at KL University: 75%\n`;
-  return ctx;
-}
-
-async function sendAI() {
+// ── CHAT BOT (pure math, no API) ──
+function sendMsg() {
   const input = document.getElementById("chatInput");
-  const msg = input.value.trim();
+  const msg   = input.value.trim();
   if (!msg) return;
   input.value = "";
   appendMsg("user", msg, "🎓");
-
-  const tid = "typing_" + Date.now();
-  document.getElementById("chatMsgs").innerHTML += `
-    <div class="msg ai" id="${tid}">
-      <div class="msg-av">🤖</div>
-      <div class="msg-body"><div class="typing-dots"><span></span><span></span><span></span></div></div>
-    </div>`;
-  scrollChat();
-
-  try {
-    const res = await fetch(`${API_BASE}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: msg, context: buildContext() })
-    });
-    const data = await res.json();
-    document.getElementById(tid)?.remove();
-    appendMsg("ai", data.reply || "Sorry, I couldn't respond.", "🤖");
-  } catch {
-    document.getElementById(tid)?.remove();
-    appendMsg("ai", smartFallback(msg), "🤖");
-  }
+  setTimeout(() => appendMsg("ai", buildReply(msg), "🤖"), 300);
 }
 
 function quickQ(q) {
   document.getElementById("chatInput").value = q;
-  sendAI();
+  sendMsg();
   document.querySelectorAll(".tab-section").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("tab-chat").classList.add("active");
@@ -906,50 +553,86 @@ function quickQ(q) {
 }
 
 function appendMsg(role, text, av) {
-  document.getElementById("chatMsgs").innerHTML += `
-    <div class="msg ${role}">
-      <div class="msg-av">${av}</div>
-      <div class="msg-body">${text.replace(/\n/g,"<br>").replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")}</div>
-    </div>`;
-  scrollChat();
+  const area = document.getElementById("chatMsgs");
+  area.innerHTML += `<div class="msg ${role}"><div class="msg-av">${av}</div><div class="msg-body">${text.replace(/\n/g,"<br>").replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")}</div></div>`;
+  area.scrollTop = area.scrollHeight;
 }
 
-function scrollChat() {
-  const a = document.getElementById("chatMsgs");
-  if (a) a.scrollTop = a.scrollHeight;
-}
-
-// Offline fallback math
-function smartFallback(msg) {
+function buildReply(msg) {
   const m = msg.toLowerCase();
-  if (!courses.length) return "No attendance data loaded. Please log in first.";
-  if (m.includes("skip") || m.includes("bunk") || m.includes("miss")) {
-    return "📊 Classes you can still skip (staying ≥75%):\n\n" +
-      courses.map(c=>`• **${c.name}**: ${canSkip(c)} class${canSkip(c)!==1?"es":""}`).join("\n");
+  if (!courses.length) return "No attendance data loaded yet. Please log in first on the Attendance tab.";
+
+  // ── below 75 ──
+  if (m.includes("below") || m.includes("danger") || m.includes("risk") || m.includes("fail") || m.includes("critical")) {
+    const bad = courses.filter(c => c.percentage < 75).sort((a,b) => a.percentage - b.percentage);
+    if (!bad.length) return "✅ Great news — all your subjects are above 75%! You're safe.";
+    return "🚨 **Subjects below 75%:**\n\n" +
+      bad.map(c => `• **${c.name}** — ${c.percentage}%  →  need ${mustAtt(c)} more consecutive class${mustAtt(c)!==1?"es":""}`).join("\n");
   }
-  if (m.includes("below") || m.includes("danger") || m.includes("risk") || m.includes("fail")) {
-    const bad = courses.filter(c=>c.percentage<75);
-    if (!bad.length) return "✅ All subjects are above 75%! You're safe.";
-    return "🚨 Subjects below 75%:\n\n" + bad.map(c=>`• **${c.name}**: ${c.percentage}% — need ${mustAttend(c)} more classes`).join("\n");
+
+  // ── can skip / bunk ──
+  if (m.includes("skip") || m.includes("bunk") || m.includes("miss") || m.includes("absent")) {
+    const lines = courses.map(c => {
+      const s = canSkip(c);
+      return s > 0
+        ? `• **${c.name}** (${c.percentage}%) → can skip **${s}** more class${s!==1?"es":""}`
+        : `• **${c.name}** (${c.percentage}%) → ❌ cannot skip any — already below / at limit`;
+    });
+    return "✅ **Classes you can still skip (stay ≥75%):**\n\n" + lines.join("\n");
   }
-  if (m.includes("attend") || m.includes("reach")) {
-    const bad = courses.filter(c=>c.percentage<75);
-    if (!bad.length) return "✅ All subjects are above 75%! Nothing to worry about.";
-    return "📈 Classes needed to reach 75%:\n\n" + bad.map(c=>`• **${c.name}**: ${mustAttend(c)} consecutive classes`).join("\n");
+
+  // ── must attend ──
+  if (m.includes("must attend") || m.includes("how many") || m.includes("need to attend") || m.includes("reach 75")) {
+    const bad = courses.filter(c => c.percentage < 75);
+    if (!bad.length) return "✅ All subjects are already above 75%! Nothing to worry about.";
+    return "📈 **Classes needed to reach 75%:**\n\n" +
+      bad.map(c => `• **${c.name}** (${c.percentage}%) → attend **${mustAtt(c)}** consecutive class${mustAtt(c)!==1?"es":""}`).join("\n");
   }
-  if (m.includes("summary") || m.includes("all")) {
-    return "📋 Full Summary:\n\n" + courses.map(c=>{
-      const st = c.percentage>=75?`✅ skip ${canSkip(c)} more`:`🚨 attend ${mustAttend(c)} more`;
-      return `• **${c.name}**: ${c.percentage}% → ${st}`;
-    }).join("\n");
+
+  // ── specific subject lookup ──
+  const matched = courses.filter(c => m.includes(c.name.toLowerCase().split(" ")[0].toLowerCase()) || m.includes((c.code||"").toLowerCase()));
+  if (matched.length) {
+    return matched.map(c => {
+      const skip = canSkip(c);
+      const must = mustAtt(c);
+      const status = c.percentage >= 75
+        ? `✅ **SAFE** — you can skip **${skip}** more class${skip!==1?"es":""} and stay above 75%.`
+        : `🚨 **${c.percentage < 65 ? "CRITICAL" : "WARNING"}** — attend **${must}** consecutive classes to reach 75%.`;
+      return `**${c.name}** (${c.code})\n${c.attended} attended / ${c.conducted} held = **${c.percentage}%**\n${status}`;
+    }).join("\n\n");
   }
+
+  // ── average / overall ──
+  if (m.includes("average") || m.includes("overall") || m.includes("total")) {
+    const avg = (courses.reduce((a,c) => a+c.percentage,0)/courses.length).toFixed(1);
+    const low = courses.filter(c=>c.percentage<75).length;
+    return `🎯 Your overall attendance average is **${avg}%**\n${low} subject${low!==1?"s":""} below 75% out of ${courses.length} total.`;
+  }
+
+  // ── most at risk ──
+  if (m.includes("worst") || m.includes("most at risk") || m.includes("lowest")) {
+    const worst = [...courses].sort((a,b)=>a.percentage-b.percentage)[0];
+    const must  = mustAtt(worst);
+    return `🔥 Your most at-risk subject is **${worst.name}** at **${worst.percentage}%**.\n` +
+      (must > 0 ? `You need to attend **${must}** more consecutive classes to reach 75%.` : `You can still skip ${canSkip(worst)} more classes.`);
+  }
+
+  // ── summary ──
+  if (m.includes("summary") || m.includes("all") || m.includes("list")) {
+    return "📋 **Full Attendance Summary:**\n\n" +
+      [...courses].sort((a,b)=>a.percentage-b.percentage).map(c => {
+        const s = canSkip(c); const mu = mustAtt(c);
+        const tag = c.percentage>=75 ? `✅ skip ${s} more` : `🚨 attend ${mu} more`;
+        return `• **${c.name}**: ${c.percentage}% → ${tag}`;
+      }).join("\n");
+  }
+
+  // ── default ──
   const avg = (courses.reduce((a,c)=>a+c.percentage,0)/courses.length).toFixed(1);
-  return `📊 Your overall average is **${avg}%**\n\n` + courses.map(c=>`• ${c.name}: ${c.percentage}%`).join("\n");
+  return `I have your attendance data for **${courses.length} subjects** (avg: **${avg}%**).\n\nTry asking:\n• "Which subjects can I skip?"\n• "How many classes must I attend in [subject]?"\n• "Which are below 75%?"\n• "Give me a full summary"`;
 }
 
-// ═══════════════════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════════════════
+// ── TOAST ──
 function toast(msg, type="info") {
   const t = document.createElement("div");
   t.className = `toast toast-${type}`;
