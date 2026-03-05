@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
-import re
+import re, os
 
 app = Flask(__name__)
 CORS(app, origins="*")
@@ -68,7 +68,6 @@ def parse_attendance(html):
     courses = []
     student_name = ""
 
-    # Try to get student name from common selectors
     for sel in [".user-name", "#profile-name", ".username", "[class*='student']"]:
         el = soup.select_one(sel)
         if el:
@@ -90,9 +89,9 @@ def parse_attendance(html):
         col = {"code": -1, "name": -1, "conducted": -1, "attended": -1}
         for i, h in enumerate(headers):
             if "code" in h and col["code"] == -1: col["code"] = i
-            if any(k in h for k in ["course name","subject name","name","description","title"]) and col["name"] == -1: col["name"] = i
-            if any(k in h for k in ["conduct","held","total class"]): col["conducted"] = i
-            if any(k in h for k in ["attend","present"]) and col["attended"] == -1: col["attended"] = i
+            if any(k in h for k in ["course name", "subject name", "name", "description", "title"]) and col["name"] == -1: col["name"] = i
+            if any(k in h for k in ["conduct", "held", "total class"]): col["conducted"] = i
+            if any(k in h for k in ["attend", "present"]) and col["attended"] == -1: col["attended"] = i
 
         for row in rows[1:]:
             cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
@@ -114,7 +113,8 @@ def parse_attendance(html):
             attended = safe_int(col["attended"])
 
             if not conducted:
-                nums = [int(re.sub(r"[^\d]","",c)) for c in cells if re.sub(r"[^\d]","",c) and 0 < int(re.sub(r"[^\d]","",c)) < 1000]
+                nums = [int(re.sub(r"[^\d]", "", c)) for c in cells
+                        if re.sub(r"[^\d]", "", c) and 0 < int(re.sub(r"[^\d]", "", c)) < 1000]
                 if len(nums) >= 2:
                     conducted, attended = nums[0], nums[1]
 
@@ -129,7 +129,13 @@ def parse_attendance(html):
             if not name and not code: continue
 
             pct = round((attended / conducted) * 100, 1) if conducted > 0 else 0.0
-            courses.append({"code": code or "—", "name": name or code, "conducted": conducted, "attended": attended, "percentage": pct})
+            courses.append({
+                "code": code or "—",
+                "name": name or code,
+                "conducted": conducted,
+                "attended": attended,
+                "percentage": pct,
+            })
 
         if courses:
             break
@@ -143,18 +149,19 @@ def fetch_attendance(session):
     if form:
         csrf_inp = form.find("input", {"name": "_csrf"}) or soup.find("input", {"name": "_csrf"})
         data = {}
-        if csrf_inp: data["_csrf"] = csrf_inp.get("value","")
+        if csrf_inp: data["_csrf"] = csrf_inp.get("value", "")
         for inp in form.find_all("input"):
-            n,v,t = inp.get("name",""), inp.get("value",""), inp.get("type","text").lower()
-            if n and t not in ("submit","button","reset"): data[n] = v
+            n, v, t = inp.get("name", ""), inp.get("value", ""), inp.get("type", "text").lower()
+            if n and t not in ("submit", "button", "reset"): data[n] = v
         for sel in form.find_all("select"):
-            n = sel.get("name","")
+            n = sel.get("name", "")
             if not n: continue
-            opts = [o for o in sel.find_all("option") if o.get("value","").strip() and o.get("value") not in ("","0")]
+            opts = [o for o in sel.find_all("option") if o.get("value", "").strip() and o.get("value") not in ("", "0")]
             if opts: data[n] = opts[0]["value"]
-        action = form.get("action","") or ATTENDANCE_URL
+        action = form.get("action", "") or ATTENDANCE_URL
         if not action.startswith("http"): action = ERP_BASE + "/" + action.lstrip("/")
-        resp2 = session.post(action, data=data, headers={**HEADERS,"Referer":ATTENDANCE_URL}, timeout=15)
+        resp2 = session.post(action, data=data,
+                             headers={**HEADERS, "Referer": ATTENDANCE_URL}, timeout=15)
         return resp2.text
     return resp.text
 
@@ -181,7 +188,11 @@ def login_and_fetch():
     if not courses:
         soup = BeautifulSoup(html, "html.parser")
         snippet = soup.get_text()[:800]
-        return jsonify({"ok": False, "error": "Logged in but no attendance table found. Try selecting a semester on the ERP.", "debug": snippet})
+        return jsonify({
+            "ok": False,
+            "error": "Logged in but no attendance table found. Try selecting a semester on the ERP first.",
+            "debug": snippet
+        })
 
     return jsonify({"ok": True, "studentName": student_name, "courses": courses})
 
@@ -192,59 +203,5 @@ def health():
 
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-
-
-@app.route("/api/chat", methods=["POST"])
-def chat():
-    """
-    Proxy to Claude API for the AI chat.
-    Body: { "message": "...", "context": "..." }
-    """
-    import os, json
-    body = request.get_json(force=True, silent=True) or {}
-    message = (body.get("message") or "").strip()
-    context = (body.get("context") or "").strip()
-    if not message:
-        return jsonify({"ok": False, "error": "No message"}), 400
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not api_key:
-        return jsonify({"reply": "AI chat is not configured (no API key set on server). But I can still help with math! Ask about skipping classes.", "ok": True})
-
-    system_prompt = f"""You are an attendance assistant for KL University students.
-You have the student's LIVE attendance data shown below. Use exact numbers from it.
-
-{context}
-
-Rules:
-- Always quote exact numbers (percentage, classes held, classes attended).
-- The minimum attendance at KL University is 75%. Below 65% risks debarment from exams.
-- For "can I skip" questions: use the pre-calculated canSkip formula: floor(attended / 0.75 - conducted).
-- For "must attend" questions: use ceil((0.75*conducted - attended) / 0.25).
-- Be direct, concise, and give specific numbers.
-- Use emojis sparingly for warmth."""
-
-    try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "x-api-key": api_key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 600,
-                "system": system_prompt,
-                "messages": [{"role": "user", "content": message}],
-            },
-            timeout=20,
-        )
-        data = resp.json()
-        reply = "".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
-        return jsonify({"reply": reply or "No response from AI.", "ok": True})
-    except Exception as e:
-        return jsonify({"reply": f"AI unavailable: {str(e)}", "ok": True})
